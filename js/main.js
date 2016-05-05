@@ -11,12 +11,11 @@ function Card(rank,suit) {
 function Stack () {
   this.cards = new Array();
 
-  this.createDeck = stackCreateDeck;
-  this.shuffle    = stackShuffle;
-  this.deal       = stackDeal;
-  this.combine    = stackCombine;
-  this.addCard    = stackAdd;
-  this.countStack = stackCount;
+  this.createDeck  = stackCreateDeck;
+  this.shuffle     = stackShuffle;
+  this.deal        = stackDeal;
+  this.combine     = stackCombine;
+  this.score       = stackScore;
 }
 
 /* ========================================================= */
@@ -52,7 +51,10 @@ function stackShuffle (n) {
   }
 }
 
-function stackDeal() {
+// deal a card to player
+
+function stackDeal(hand) {
+  hand.cards.push(deck.cards[0]);
   this.cards.shift();
 }
 
@@ -61,24 +63,84 @@ function stackCombine(array) {
   this.cards.concat(array);
 }
 
-// Add a single card to the end of the stack
-function stackAdd(card) {
-  this.cards.push(card);
-}
 
-// count remaining cards in the deck
-function stackCount() {
-  this.cards.length();
+function stackScore() {
+  var score = 0, aceIncluded;
+  soft = false;
+  blackjack = false;
+  busted = false;
+  for (k = 0; k < this.cards.length; k++) {
+    switch (this.cards[k].rank) {
+      case "A":
+        score = score + 1;
+        aceIncluded = true;
+        break;
+      case "2":
+        score = score + 2;
+        break;
+      case "3":
+        score = score + 3;
+        break;
+      case "4":
+        score = score + 4;
+        break;
+      case "5":
+        score = score + 5;
+        break;
+      case "6":
+        score = score + 6;
+        break;
+      case "7":
+        score = score + 7;
+        break;
+      case "8":
+        score = score + 8;
+        break;
+      case "9":
+        score = score + 9;
+        break;
+      case "10":
+        score = score + 10;
+        break;
+      case "J":
+        score = score + 10;
+        break;
+      case "Q":
+        score = score + 10;
+        break;
+      case "K":
+        score = score + 10;
+        break;
+    }
+  }
+  if (aceIncluded === true && score <= 11) {
+    soft = true;
+    score = score + 10;
+  }
+  if (score === 21 && this.cards.length === 2) {
+    blackjack = true;
+  }
+  if (score > 21) {
+    busted = true;
+  }
+  return score;
 }
-
 
 /* ========================================================= */
 
 // Global variables
 
 var numDecks   = 8;
-var numShuffle = 4;
+var numShuffle = 10;
 var credit = 1000;
+
+var soft, busted, blackjack;
+
+/* ========================================================= */
+
+playerHand1 = new Stack();
+
+
 
 /* ========================================================= */
 
@@ -89,58 +151,54 @@ function newDeck() {
 }
 
 function initGame () {
-  newDeck();
+  
 }
 
-function score(hand) {
-  if hand.cards.length() = 2 {
-    if 
+
+// Button functions
+function onDeal() {
+// start a new game
+}
+
+function onHit (hand) {
+  deck.deal(hand);
+  hand.score();
+  if (busted) {
+// end the game for this hand
   }
+  // update the score
 }
 
+function onDouble(hand) {
+  deck.deal(hand);
+  hand.score();
+// update score, end the game, check if busted
+}
 
-// function score(hand) {
-//   var handScore;
+function onSplit(hand) {
+// check it reach split limit, move the second card to a new hand. 
+}
 
+function onStand(hand) {
+// end game
+}
 
-//   for (i = 0; i <hand.length; i++){
+function onInsurance(hand) {
+  // promt when Ace is shown on dealer hand
+  // check for blackjack right after
+}
 
-//     }
+function onSurrender(hand) {
+  // only available when hand has 2 cards
+  // end game if chosen surrender
+  // deactivate if hand length is 3 or more
+}
 
-  
-  
-// }
-
-
-/*- Game functions:
-    - Score:
-      + Evaluate value of the hand
-      + Determine if the hand is soft or hard
-      + Determine if bust
-      + Determine if blackjack
-    - Hit:
-      + Remove card from Deck
-      + Add that same card to Hand
-      + Score
-        * If busted: lose
-        * If 21: automatically stop the hand, game stop
-    - Double:
-      + Similar to hit, except stop game (all options disabled)
-      + Double the bet amount
-    - Stand:
-      + Stop game
-    - Split:
-      + If player's hand has two of the same card, enable this function.
-      + Split hand into two separate hands and deal a minimum of one extra card per hand. Game continues as if normal
-      + Bet is doubled
-      + Can split up to 3 times (4 total hands)
-    - Surrender
-      + Give up the game at the beginning of the game. Lose half of the origninal bet and get back the other half. Game ends
-    - Insurance
-      + Available when dealer up card is Ace.
-      + Cost half of original bet. Pays 2:1 if dealer has blackjack
-      + Alert user and ask for a decision. After decision, dealer check if his hand is blackjack. If yes, game ends, otherwise continues as normal 
-*/
+// Testing
+card1 = new Card ("A", "H");
+card2 = new Card ("J", "H");
+card3 = new Card ("5", "H");
+card4 = new Card ("6", "H");
 
 /*- Game advice
     - Teach player by keeping a record of how things should be done at each step

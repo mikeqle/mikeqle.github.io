@@ -15,7 +15,14 @@ function Stack () {
   this.shuffle     = stackShuffle;
   this.deal        = stackDeal;
   this.combine     = stackCombine;
-  this.score       = stackScore;
+}
+
+function Hand() {
+  this.cards     = new Array();
+  this.score     = handScore;
+  this.blackjack = false;
+  this.busted    = false;
+  this.soft      = false;
 }
 
 /* ========================================================= */
@@ -64,11 +71,14 @@ function stackCombine(array) {
 }
 
 
-function stackScore() {
+// Hand functions
+
+function handScore() {
   var score = 0, aceIncluded;
-  soft = false;
-  blackjack = false;
-  busted = false;
+  this.soft = false;
+  this.blackjack = false;
+  this.busted = false;
+
   for (k = 0; k < this.cards.length; k++) {
     switch (this.cards[k].rank) {
       case "A":
@@ -114,14 +124,14 @@ function stackScore() {
     }
   }
   if (aceIncluded === true && score <= 11) {
-    soft = true;
+    this.soft = true;
     score = score + 10;
   }
   if (score === 21 && this.cards.length === 2) {
-    blackjack = true;
+    this.blackjack = true;
   }
   if (score > 21) {
-    busted = true;
+    this.busted = true;
   }
   return score;
 }
@@ -131,16 +141,8 @@ function stackScore() {
 // Global variables
 
 var numDecks   = 8;
-var numShuffle = 10;
+var numShuffle = 20;
 var credit = 1000;
-
-var soft, busted, blackjack;
-
-/* ========================================================= */
-
-playerHand1 = new Stack();
-
-
 
 /* ========================================================= */
 
@@ -150,14 +152,31 @@ function newDeck() {
   deck.shuffle(numShuffle);
 }
 
-function initGame () {
-  
+function onPageLoad () {
+  newDeck();
+
 }
 
+function clearAllHands() {
+  for (i = 0; i<allHands.length; i++) {
+    allHands[i].length = 0;
+  }
+}
 
 // Button functions
+// Game start with 
+
+
 function onDeal() {
-// start a new game
+  clearAllHands();
+// deal first card
+  for (i=0; i<allHands.length; i++) {
+    deck.deal(allHands[i]);
+  }
+// deal second card
+  for (i=0; i<allHands.length; i++) {
+    deck.deal(allHands[i]);
+  }
 }
 
 function onHit (hand) {
@@ -166,6 +185,7 @@ function onHit (hand) {
   if (busted) {
 // end the game for this hand
   }
+  
   // update the score
 }
 
@@ -194,11 +214,77 @@ function onSurrender(hand) {
   // deactivate if hand length is 3 or more
 }
 
+// Round
+function gameplay() {
+  for (i=0; i<allHands.length; i++) {
+    allHands[i].score();
+  }
+
+  if (dealerHand.cards[1].rank == "A") {
+    onInsurance();
+  }
+
+// if dealer is blackjack, end round and check results
+  if (dealerHand.blackjack) {
+    endRound();
+  }
+// if not, proceed to individual gameplay: playerTurn & AITurn
+  else {
+    playerTurn();
+  }
+}
+
+function playerTurn() {
+
+
+// if player decided to hit, then extend playerTurn to next currentHand count, else move to AITurn
+
+}
+
+function AITurn() {
+
+}
+
+function endHand() {
+  allHands[currentHand].score();
+  currentHand += 1;
+
+  if (currentHand == allHands.length) {
+    endRound();
+  }
+}
+
+function endRound() {
+
+}
+
+
+/* ========================================================= */
+// Declare player hands
+
+dealerHand = new Hand();
+player1Hand = new Hand();
+computerA1Hand = new Hand();
+computerB1Hand = new Hand();
+computerC1Hand = new Hand();
+computerD1Hand = new Hand();
+
+allHands = [dealerHand, player1Hand, computerA1Hand, computerB1Hand, computerC1Hand, computerD1Hand];
+var currentHand = 0;
+
 // Testing
-card1 = new Card ("A", "H");
-card2 = new Card ("J", "H");
-card3 = new Card ("5", "H");
-card4 = new Card ("6", "H");
+
+newDeck();
+for (i=0; i<11; i++) {
+  console.log("card " + i + " rank " + deck.cards[i].rank + deck.cards[i].suit);
+}
+onDeal();
+for (i=0; i < allHands.length; i++) {
+  console.log (i + " " + allHands[i].cards[0].rank + allHands[i].cards[0].suit);
+  console.log (i + " " + allHands[i].cards[1].rank + allHands[i].cards[1].suit);
+}
+
+
 
 /*- Game advice
     - Teach player by keeping a record of how things should be done at each step

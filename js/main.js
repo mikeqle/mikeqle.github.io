@@ -4,8 +4,9 @@
 // Define Card and Stack objects
 
 function Card(rank,suit) {
-  this.rank = rank;
-  this.suit = suit;
+  this.rank       = rank;
+  this.suit       = suit;
+  this.createNode = cardCreateNode;
 }
 
 function Stack () {
@@ -17,13 +18,173 @@ function Stack () {
   this.combine     = stackCombine;
 }
 
-function Hand() {
+function Hand(owner, splitcount) {
   this.cards     = new Array();
   this.score     = handScore;
   this.blackjack = false;
   this.busted    = false;
   this.soft      = false;
+  this.owner     = owner;
+  this.handname  = owner+splitcount;
 }
+
+/* ========================================================= */
+// Load cardback image and face card images
+var cardImg0 = new Image(); cardImg0.src= "img/cardback.gif";
+var cardImg1 = new Image(); cardImg1.src= "img/jack.gif";
+var cardImg2 = new Image(); cardImg2.src= "img/queen.gif";
+var cardImg3 = new Image(); cardImg3.src= "img/king.gif";
+
+// cardCreateNode: function to create a div from card rank & suit
+function cardCreateNode() {
+  var cardNode, frontNode, indexNode, spotNode, tempNode, textNode;
+  var indexStr, spotChar;
+
+  // Card node is the main element, will be the result of this function
+  cardNode = document.createElement("DIV");
+  cardNode.className = "card";
+
+  // front of card
+  frontNode = document.createElement("DIV");
+  frontNode.className = "front";
+
+  spotChar = "\u00a0"; // non breaking space
+  
+  switch (this.suit) {
+    case "C":
+      spotChar = "\u2663"; // club suit
+      break;
+    case "S":
+      spotChar = "\u2660"; // spade suit
+      break;
+    case "H":
+      frontNode.className += " red";
+      spotChar = "\u2665"; // heart suit
+      break;
+    case "D":
+      frontNode.className += " red";
+      spotChar = "\u2666"; // diamond suit
+      break;
+  }
+
+  // Create index to the upper left of the card node
+  indexStr = this.rank;
+  if (this.toString() === "")
+    indexStr = "\u00a0";
+
+  spotNode = document.createElement("DIV");
+  spotNode.className = "index";
+  textNode = document.createTextNode(indexStr);
+  spotNode.appendChild(textNode);
+  spotNode.appendChild(document.createElement("BR"));
+  textNode = document.createTextNode(spotChar);
+  spotNode.appendChild(textNode);
+  frontNode.appendChild(spotNode);
+
+  // Create and fill in spots appropriate with the card's rank
+  // spotA1 to C5 are different locations on the card where the spotChar will occupy depending on the rank
+  spotNode = document.createElement("DIV");
+  textNode = document.createTextNode(spotChar);
+  spotNode.appendChild(textNode);
+  if (this.rank == "A") {
+    spotNode.className = "ace";
+    tempNode = spotNode.cloneNode(true);
+    frontNode.appendChild(tempNode);
+  }
+  if (this.rank == "3" || this.rank == "5" || this.rank == "9") {
+    spotNode.className = "spotB3";
+    tempNode = spotNode.cloneNode(true);
+    frontNode.appendChild(tempNode);
+  }
+  if (this.rank == "2" || this.rank == "3") {
+    spotNode.className = "spotB1";
+    tempNode = spotNode.cloneNode(true);
+    frontNode.appendChild(tempNode);
+  }
+  if (this.rank == "2" || this.rank == "3") {
+    spotNode.className = "spotB5";
+    tempNode = spotNode.cloneNode(true);
+    frontNode.appendChild(tempNode);
+  }
+  if (this.rank == "4" || this.rank == "5" || this.rank == "6" ||
+      this.rank == "7" || this.rank == "8" || this.rank == "9" ||
+      this.rank == "10") {
+    spotNode.className = "spotA1";
+    tempNode = spotNode.cloneNode(true);
+    frontNode.appendChild(tempNode);
+    spotNode.className = "spotA5";
+    tempNode = spotNode.cloneNode(true);
+    frontNode.appendChild(tempNode);
+    spotNode.className = "spotC1";
+    tempNode = spotNode.cloneNode(true);
+    frontNode.appendChild(tempNode);
+    spotNode.className = "spotC5";
+    tempNode = spotNode.cloneNode(true);
+    frontNode.appendChild(tempNode);
+  }
+  if (this.rank == "6" || this.rank == "7" || this.rank == "8") {
+    spotNode.className = "spotA3";
+    tempNode = spotNode.cloneNode(true);
+    frontNode.appendChild(tempNode);
+    spotNode.className = "spotC3";
+    tempNode = spotNode.cloneNode(true);
+    frontNode.appendChild(tempNode);
+  }
+  if (this.rank == "7" || this.rank == "8" || this.rank == "10") {
+    spotNode.className = "spotB2";
+    tempNode = spotNode.cloneNode(true);
+    frontNode.appendChild(tempNode);
+  }
+  if (this.rank == "8" || this.rank == "10") {
+    spotNode.className = "spotB4";
+    tempNode = spotNode.cloneNode(true);
+    frontNode.appendChild(tempNode);
+  }
+  if (this.rank == "9" || this.rank == "10") {
+    spotNode.className = "spotA2";
+    tempNode = spotNode.cloneNode(true);
+    frontNode.appendChild(tempNode);
+    spotNode.className = "spotA4";
+    tempNode = spotNode.cloneNode(true);
+    frontNode.appendChild(tempNode);
+    spotNode.className = "spotC2";
+    tempNode = spotNode.cloneNode(true);
+    frontNode.appendChild(tempNode);
+    spotNode.className = "spotC4";
+    tempNode = spotNode.cloneNode(true);
+    frontNode.appendChild(tempNode);
+  }
+  // For face cards (Jack, Queen or King), create and add the proper image.
+  tempNode = document.createElement("IMG");
+  tempNode.className = "face";
+  if (this.rank == "J")
+    tempNode.src = "img/jack.gif";
+  if (this.rank == "Q")
+    tempNode.src = "img/queen.gif";
+  if (this.rank == "K")
+    tempNode.src = "img/king.gif";
+
+  // For face cards, add suit characters to the upper-left and lower-right corners.
+
+  if (this.rank == "J" || this.rank == "Q" || this.rank == "K") {
+    frontNode.appendChild(tempNode);
+    spotNode.className = "spotA1";
+    tempNode = spotNode.cloneNode(true);
+    frontNode.appendChild(tempNode);
+    spotNode.className = "spotC5";
+    tempNode = spotNode.cloneNode(true);
+    frontNode.appendChild(tempNode);
+  }
+
+  // Add front node to the card node.
+
+  cardNode.appendChild(frontNode);
+
+  // Return the card node.
+
+  return cardNode;
+}
+
 
 /* ========================================================= */
 
@@ -136,13 +297,7 @@ function handScore() {
   return score;
 }
 
-/* ========================================================= */
 
-// Global variables
-
-var numDecks   = 8;
-var numShuffle = 20;
-var credit = 1000;
 
 /* ========================================================= */
 
@@ -157,9 +312,9 @@ function onPageLoad () {
 
 }
 
-function clearAllHands() {
-  for (i = 0; i<allHands.length; i++) {
-    allHands[i].length = 0;
+function clearhands() {
+  for (i = 0; i<hands.length; i++) {
+    hands[i].length = 0;
   }
 }
 
@@ -168,30 +323,32 @@ function clearAllHands() {
 
 
 function onDeal() {
-  clearAllHands();
+  clearhands();
 // deal first card
-  for (i=0; i<allHands.length; i++) {
-    deck.deal(allHands[i]);
+  deck.deal(dealerHand);
+  for (i=0; i<hands.length; i++) {
+    deck.deal(hands[i]);
   }
 // deal second card
-  for (i=0; i<allHands.length; i++) {
-    deck.deal(allHands[i]);
+  deck.deal(dealerHand);
+  for (i=0; i<hands.length; i++) {
+    deck.deal(hands[i]);
   }
+
+  gameplay();
 }
 
-function onHit (hand) {
+function onHit () {
   deck.deal(hand);
-  hand.score();
-  if (busted) {
-// end the game for this hand
+  hands[current].score();
+
   }
   
-  // update the score
-}
+  // update the score and credit [TBU]
 
-function onDouble(hand) {
-  deck.deal(hand);
-  hand.score();
+function onDouble() {
+  deck.deal(hands[current]);
+  hands[current].score();
 // update score, end the game, check if busted
 }
 
@@ -203,9 +360,21 @@ function onStand(hand) {
 // end game
 }
 
-function onInsurance(hand) {
+function onInsurance() {
   // promt when Ace is shown on dealer hand
-  // check for blackjack right after
+  var insuranceCost; // insurance cost will be half of original best
+  if (confirm("Would you like to get insurance?")) {
+    insuranceCost = bets[hands[current].handname] / 2;
+    credits[hands[current].owner] -= insuranceCost;
+
+    if (dealerHand.blackjack) {
+      alert ("Dealer has blackjack. You win!");
+      credits[hands[current].owner] += insuranceCost;
+    }
+    else
+      alert("Dealer does not have blackjack. you lose " + insuranceCost);
+  }
+  // update credit [TBU]
 }
 
 function onSurrender(hand) {
@@ -214,10 +383,21 @@ function onSurrender(hand) {
   // deactivate if hand length is 3 or more
 }
 
-// Round
+function ifBusted() {
+  if (hands[current].busted) {
+// Display lose status [TBU]
+
+// If busted, credit is reduce and the hand is done
+  credits[hands[current].owner] -= bets[hands[current].handname];
+  endHand();
+  }
+}
+
+// Gameplay right after the card is dealt
 function gameplay() {
-  for (i=0; i<allHands.length; i++) {
-    allHands[i].score();
+  dealerHand.score();
+  for (i=0; i<hands.length; i++) {
+    hands[i].score();
   }
 
   if (dealerHand.cards[1].rank == "A") {
@@ -228,6 +408,7 @@ function gameplay() {
   if (dealerHand.blackjack) {
     endRound();
   }
+
 // if not, proceed to individual gameplay: playerTurn & AITurn
   else {
     playerTurn();
@@ -237,7 +418,7 @@ function gameplay() {
 function playerTurn() {
 
 
-// if player decided to hit, then extend playerTurn to next currentHand count, else move to AITurn
+// if player decided to hit, then extend playerTurn to next current count, else move to AITurn
 
 }
 
@@ -245,32 +426,96 @@ function AITurn() {
 
 }
 
-function endHand() {
-  allHands[currentHand].score();
-  currentHand += 1;
+function dealerTurn() {
 
-  if (currentHand == allHands.length) {
+}
+
+function endHand() {
+  hands[current].score();
+  current += 1;
+
+  if (current == hands.length) {
     endRound();
   }
 }
 
 function endRound() {
-
+// Evaluate scenarios and pay off
+  dealerHand.score();
+  for (i=0; i<hands.length; i++) {
+  // if dealer is blackjack
+    if (dealer.blackjack) {
+      if (hands[i].blackjack) {
+        console.log(hands[i].handname + "push");
+      } 
+      else {
+        credits[hands[i].owner] -= bets[hands[i].handname];
+        console.log(hands[i].handname + "lost");
+      }
+    }
+  // if dealer is not blackjack
+    else {
+      if (hands[i].blackjack) {
+        credits[hands[i].owner] += bets[hands[i].handname]*2;
+        console.log(hands[i].handname + "Wins Blackjack");
+      }
+      else if (dealerHand.score() > hands[i].score()){
+        credits[hands[i].owner] -= bets[hands[i].handname];
+        console.log(hands[i].handname + "lost");
+      }
+      else if (dealerHand.score() < hands[i].score()) {
+        credits[hands[i].owner] += bets[hands[i].handname];
+        console.log(hands[i].handname + "won");
+      }
+      else {
+        console.log(hands[i].handname + "push");
+      }
+    }
+  }
 }
 
+/* ========================================================= */
+
+// Global variables & constants
+
+var numDecks   = 8;
+var numShuffle = 20;
+var credit = 1000;
 
 /* ========================================================= */
 // Declare player hands
 
-dealerHand = new Hand();
-player1Hand = new Hand();
-computerA1Hand = new Hand();
-computerB1Hand = new Hand();
-computerC1Hand = new Hand();
-computerD1Hand = new Hand();
+dealerHand  = new Hand("dealer", 0);
+player0Hand = new Hand("player", 0);
+compAHand   = new Hand("compA", 0);
+compBHand   = new Hand("compB", 0);
+compCHand   = new Hand("compC", 0);
+compDHand   = new Hand("compD", 0);
 
-allHands = [dealerHand, player1Hand, computerA1Hand, computerB1Hand, computerC1Hand, computerD1Hand];
-var currentHand = 0;
+/* ========================================================= */
+// Declare bet values
+var player0Bet = 10 ;
+var player1Bet, player2Bet, player3Bet; // for split bets
+var compABet = 5;
+var compBBet = 5;
+var compCBet = 5;
+var compDBet = 5;
+
+// Declare credit balance for all players
+var playerCredit = 1000;
+var compACredit = 1000;
+var compBCredit = 1000;
+var compCCredit = 1000;
+var compDCredit = 1000;
+
+
+// Declare hand arrays and dictionaries
+hands = [player0Hand, compAHand, compBHand, compCHand, compDHand];
+var current = 0; // This is to indicate the current hand in the hands array
+
+credits = {"player":playerCredit, "compA":compACredit, "compB":compBCredit, "compC":compCCredit, "compD":compDCredit};
+bets = {"player0": player0Bet, "player1": player1Bet, "player2": player2Bet, "player3": player3Bet, "compA0": compABet, "compB0": compBBet, "compC0": compCBet, "compD0": compDBet};
+
 
 // Testing
 
@@ -279,12 +524,12 @@ for (i=0; i<11; i++) {
   console.log("card " + i + " rank " + deck.cards[i].rank + deck.cards[i].suit);
 }
 onDeal();
-for (i=0; i < allHands.length; i++) {
-  console.log (i + " " + allHands[i].cards[0].rank + allHands[i].cards[0].suit);
-  console.log (i + " " + allHands[i].cards[1].rank + allHands[i].cards[1].suit);
+console.log (dealerHand.owner + " " +dealerHand.cards[0].rank + dealerHand.cards[0].suit);
+console.log (dealerHand.owner + " " +dealerHand.cards[1].rank + dealerHand.cards[1].suit);
+for (i=0; i < hands.length; i++) {
+  console.log (i + " " + hands[i].cards[0].rank + hands[i].cards[0].suit);
+  console.log (i + " " + hands[i].cards[1].rank + hands[i].cards[1].suit);
 }
-
-
 
 /*- Game advice
     - Teach player by keeping a record of how things should be done at each step

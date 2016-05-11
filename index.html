@@ -8,44 +8,57 @@
 </head>
 <body>
   <div id="container">
-    <div id="dealer" class="playField">
+    <div id="dealer0" class="playField">
       
     </div>
     <div id="playerContainer">
 <!-- 1st row of hands-->
-      <div class="playField" id="player0"></div>
-      <div class="playField" id="compA0"></div>
-      <div class="playField" id="compB0"></div>
-      <div class="playField" id="compC0"></div>
-      <div class="playField" id="compD0"></div>
+      <div class="rows" id="row1">
+        <h5>Player</h5>
+        <h5>Computer 1</h5>
+        <h5>Computer 2</h5>
+        <h5>Computer 3</h5>
+        <h5>Computer 4</h5>
+        <div class="playField" id="player0"></div>
+        <div class="playField" id="compA0"></div>
+        <div class="playField" id="compB0"></div>
+        <div class="playField" id="compC0"></div>
+        <div class="playField" id="compD0"></div>
+      </div>
 
 <!-- 2nd row of hands: in case of splitting hands, however the computers are placeholders and will not split hands in this version-->
-      <div class="playField hide" id="player1"></div>
-      <div class="playField hide" id="compA1"></div>
-      <div class="playField hide" id="compB1"></div>
-      <div class="playField hide" id="compC1"></div>
-      <div class="playField hide" id="compD1"></div>
+      <div class="rows" id="row2">
+        <div class="playField hide" id="player1"></div>
+        <div class="playField hide" id="compA1"></div>
+        <div class="playField hide" id="compB1"></div>
+        <div class="playField hide" id="compC1"></div>
+        <div class="playField hide" id="compD1"></div>
+      </div>
 
 <!-- 3rd row of hands-->
-      <div class="playField hide" id="player2"></div>
-      <div class="playField hide" id="compA2"></div>
-      <div class="playField hide" id="compB2"></div>
-      <div class="playField hide" id="compC2"></div>
-      <div class="playField hide" id="compD2"></div>
-
+      <div class="rows" id="row3">
+        <div class="playField hide" id="player2"></div>
+        <div class="playField hide" id="compA2"></div>
+        <div class="playField hide" id="compB2"></div>
+        <div class="playField hide" id="compC2"></div>
+        <div class="playField hide" id="compD2"></div>
+      </div>
 <!-- 4th row of hands-->
-      <div class="playField hide" id="player3"></div>
-      <div class="playField hide" id="compA3"></div>
-      <div class="playField hide" id="compB3"></div>
-      <div class="playField hide" id="compC3"></div>
-      <div class="playField hide" id="compD3"></div>
+      <div class="rows" id="row4">
+        <div class="playField hide" id="player3"></div>
+        <div class="playField hide" id="compA3"></div>
+        <div class="playField hide" id="compB3"></div>
+        <div class="playField hide" id="compC3"></div>
+        <div class="playField hide" id="compD3"></div>
+      </div>
+
     </div>
 
     <div id="buttonDiv" class="clearfix">
       <button id="deal" onclick="onDeal(); return false;">Deal</button>
       <button id="hit" onclick="onHit(); return false;">Hit</button>
       <button id="double" onclick="onDouble(); return false;">Double</button>
-      <button id="split">Split</button>
+      <button id="split" onclick="onSplit(); return false;">Split</button>
       <button id="stand" onclick="onStand(); return false;">Stand</button>
       <button id="surrender" onclick="onSurrender(); return false;">Surrender</button>
     </div>

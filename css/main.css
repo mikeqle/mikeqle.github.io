@@ -115,6 +115,19 @@ body {
   width: 100%;
 }
 
+h5 {
+  float:left;
+  border: 1px solid red;
+  width: 19%;
+  margin: 0 1.25% 0 0;
+  padding: 0;
+  text-align: center;
+}
+
+h5:nth-child(5) {
+  margin-right: 0%;
+}
+
 /*------ Layout styles ------*/
 
 #container {
@@ -136,6 +149,11 @@ body {
   margin-bottom: 1%;
 }
 
+.rows {
+  width: 100%;
+  clear: both;
+}
+
 .hide {
   display: none;
 }
@@ -147,6 +165,7 @@ body {
   float:left;
   margin: 0 1.25% 1% 0;
   background-color: rgba(54, 75, 49, 0.75);
+  position: relative;
 }
 
 .playField:nth-child(5),

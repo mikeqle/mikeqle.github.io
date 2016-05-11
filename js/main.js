@@ -2,6 +2,7 @@
 // Keys in this script:
 //   [TBU]: to be updated - work to be continued
 //   [TBR]: to be removed - mostly console.log for debugging purposes
+//   [ToCheck]
 
 
 /* ========================================================= */
@@ -24,8 +25,16 @@ function Stack () {
   this.combine     = stackCombine;
 }
 
+// For card positioning
+Hand.prototype.leftIncr  =  0.8;  // For positioning cards.
+Hand.prototype.topIncr   =  0.2;
+Hand.prototype.rollEvery =  5;
+
 function Hand(owner, splitcount) {
   this.cards      = new Array();
+
+  this.cardsNode  = document.getElementById(owner+splitcount);
+  // this.scoreNode  = document.getElementById(owner+splitcount+"Score"); // [TBU] - Add a div middle of the playing field to display result
 
   this.score      = handScore;
 // we will need to extract div id to send the cards to display
@@ -35,12 +44,10 @@ function Hand(owner, splitcount) {
   this.clear      = handClear;
   this.reset      = handReset;
 
-  this.blackjack = false;
-  this.busted    = false;
-  this.soft      = false;
-  this.surrender = false;
   this.owner     = owner;
   this.handname  = owner+splitcount;
+
+  this.reset();
 }
 
 /* ========================================================= */
@@ -237,8 +244,9 @@ function stackShuffle (n) {
 // deal a card to player
 
 function stackDeal(hand) {
+  var card;
   hand.cards.push(deck.cards[0]);
-  this.cards.shift();
+  return card = this.cards.shift();
 }
 
 // Add an array of cards to the end of the stack
@@ -314,20 +322,64 @@ function handScore() {
   return score;
 }
 
-function handAddCard() {
-// [TBU]
+function handAddCard(card, down) {
+  var node;
+
+  // Create a card node for display, set as face down if requested.
+
+  node = card.createNode();
+  if (down)
+    node.firstChild.style.visibility = "hidden";
+
+  // Add the card display to the associated card area on the page.
+
+  node.style.left = this.left + "em";
+  node.style.top  = this.top  + "em";
+  this.cardsNode.appendChild(node);
+  this.left += this.leftIncr;
+
+  if (this.cards.length % this.rollEvery == 0)
+    this.top = 0;
+  else
+    this.top += this.topIncr;
 }
 
 function handRemoveCard() {
-// [TBU]
+  var card;
+  // Remove the last card in the array and save it.
+  card = null;
+  if (this.cards.length > 0) {
+    card = this.cards.pop();
+    // Remove the card node from the display and reset position.
+    this.cardsNode.removeChild(this.cardsNode.lastChild);
+    this.left -= this.leftIncr;
+    this.top  -= this.topIncr;
+  }
+
+  // Return the card.
+
+  return card;
 }
 
 function handReset() {
-// [TBU]
+  // Remove any cards and initialize properties.
+
+  this.clear();
+
+  this.cards     = new Array();
+  
+  this.blackjack = false;
+  this.busted    = false;
+  this.soft      = false;
+  this.surrender = false;
+  
+  this.left      = 0;
+  this.top       = 0;
 }
 
 function handClear() {
-// [TBU]
+  while (this.cardsNode.lastChild)
+    this.cardsNode.removeChild(this.cardsNode.lastChild);
 }
 
 /* ========================================================= */
@@ -374,10 +426,18 @@ function newDeck() {
 function newRound() {
   for (i = 0; i<hands.length; i++) {
     hands[i].cards.length = 0;
+    hands[i].clear();
+    hands[i].reset();
   }
+
   dealerHand.cards.length = 0;
+  dealerHand.clear();
+  dealerHand.reset();
 // figure out a way to reset bets amount to last round bet. current bet may be modified because of double
   current = 0;
+  hands.length = 0;
+  hands = [player0Hand, compAHand, compBHand, compCHand, compDHand];
+  currentSplits = 0;
 }
 
 function resetButton() {
@@ -397,22 +457,26 @@ function onDeal() {
 
   $('#deal').prop('disabled', true);
 // take all bets
-  for (i=0; i<hands.length; i++) {
+  for (i=1; i<hands.length; i++) {
     credits[hands[i].owner] -= bets[hands[i].handname];
   }
 
   updatePlayerCredit();
 
 // deal first card
-  for (i=0; i<hands.length; i++) {
-    deck.deal(hands[i]);
+  for (i=1; i<hands.length; i++) {
+    hands[i].addCard(deck.deal(hands[i]),false);
   }
-  deck.deal(dealerHand);
+  dealerHand.addCard(deck.deal(dealerHand),true);
 // deal second card
-  for (i=0; i<hands.length; i++) {
-    deck.deal(hands[i]);
+  for (i=1; i<hands.length; i++) {
+    hands[i].addCard(deck.deal(hands[i]),false);
   }
-  deck.deal(dealerHand);
+  dealerHand.addCard(deck.deal(dealerHand),false);
+
+  // Testing [TBR]
+  player0Hand.addCard(player0Hand.cards[0] = new Card ("A", "H"),false);
+  player0Hand.addCard(player0Hand.cards[1] = new Card ("A", "D"),false);
 
   console.log ("Player hand: "+ player0Hand.score() + ". Dealer hand: " + dealerHand.score() + ". Current credit: " + credits["player"] ); // [TBR]
 
@@ -421,7 +485,7 @@ function onDeal() {
 }
 
 function onHit () {
-  deck.deal(hands[current]);
+  hands[current].addCard(deck.deal(hands[current]),false);
   hands[current].score();
   console.log (hands[current].handname + " score:" + hands[current].score()); // [TBR]
 // if busted
@@ -430,7 +494,7 @@ function onHit () {
 }
 
 function onDouble() {
-  deck.deal(hands[current]);
+  hands[current].addCard(deck.deal(hands[current]),false);
   credits[hands[current].owner] -= bets[hands[current].handname];
   bets[hands[current].handname] += bets[hands[current].handname];
   updatePlayerCredit();
@@ -440,8 +504,39 @@ function onDouble() {
 function onSplit() {
 // move the second card to a new hand. [TBU]
   currentSplit += 1;
-  handname[hands[current].owner+currentSplit] = new Hand (hands[current].owner, currentSplit);
 
+  switch (currentSplit) {
+  case 1:
+    player1Hand = new Hand("player", 1);
+    bets["player1"] = bets[hands[current].handname];
+    player1Hand.cards[0] = hands[current].cards[1];
+    hands.splice(current+1, 0, player1Hand);
+    hands[current+1].addCard(hands[current].cards[1],false); 
+    hands[current].removeCard();
+    break;
+
+  case 2: 
+    player2Hand = new Hand("player", 2);
+    bets["player2"] = bets[hands[current].handname];
+    player2Hand.cards[0] = hands[current].cards[1];
+    hands.splice(current+1, 0, player2Hand);
+    hands[current+1].addCard(hands[current].cards[1],false); 
+    hands[current].removeCard();
+    break;
+
+  case 3:
+    player3Hand = new Hand("player", 3);
+    bets["player2"] = bets[hands[current].handname];
+    player3Hand.cards[0] = hands[current].cards[1];
+    hands.splice(current+1, 0, player3Hand);
+    hands[current+1].addCard(hands[current].cards[1],false); 
+    hands[current].removeCard();
+    break;
+  }
+  
+  hands[current].addCard(deck.deal(hands[current]),false);
+  playerTurn();
+  $('#'+hands[current].owner+currentSplit).removeClass('hide');
 }
 
 function onStand() {
@@ -502,7 +597,8 @@ function playerTurn() {
   $('#deal').prop('disabled', true);
   $('#hit').prop('disabled', false);
   $('#stand').prop('disabled', false);
-
+  $('#split').prop('disabled', true);
+  hands[current].score();
   if (hands[current].blackjack) {
     endHand();
   }
@@ -512,22 +608,33 @@ function playerTurn() {
     $('#surrender').prop('disabled', false);
   }
 
-  if (hands[current].cards[0] === hands[current].cards[1] && hands[current].cards.length === 2 && currentSplit < maxSplits ) {
+  if (hands[current].cards[0].rank === hands[current].cards[1].rank && hands[current].cards.length === 2 && currentSplit < maxSplits ) {
     $('#split').prop('disabled', false);
   }
 }
 
 function AITurn() {
   $('#buttonDiv button').prop('disabled', true);
-  // [TBU]
+  hands[current].score();
+  // soft hand
+  if (hands[current].soft) {
+
+  }
+  // hard hand
+  else {
+
+  }
+// [TBU]
   endHand();
 }
 
 function dealerTurn() {
-// dealer will have to hit on soft 17 [TBU]
+// dealer will have to hit when score is below hard 17 or soft 18 (dealer can stand at hard 17 or soft 18)
   dealerHand.score();
-  while ( (dealerHand.score() < 18) || (dealerHand.score() === 17 && !dealerHand.soft ) ) {
-    deck.deal(dealerHand);
+  while ( (dealerHand.score() < 17 && !dealerHand.soft) || (dealerHand.score() < 18 && dealerHand.soft ) )  {
+    if (dealerHand.busted) 
+      break;
+    dealerHand.addCard(deck.deal(dealerHand),false);
     dealerHand.score();
   }
   endRound();
@@ -537,12 +644,16 @@ function endHand() {
   hands[current].score();
   current += 1;
 
+
   if (current >= hands.length) {
     dealerTurn();
   }
   else {
     if (hands[current].cards.length === 1) {
-      deck.deal(hands[current]);
+      hands[current].addCard(deck.deal(hands[current]),false);
+      hands[current].score();
+      if (hands[current].blackjack)
+      endHand();
     }
     if (hands[current].owner === "player") {
       playerTurn();
@@ -553,6 +664,7 @@ function endHand() {
 
 function endRound() {
   dealerHand.score();
+  dealerHand.cardsNode.firstChild.firstChild.style.visibility = "";
   for (i=0; i<hands.length; i++) {
     // if player surrender take money and move on
     if (hands[i].surrender){
@@ -597,34 +709,12 @@ function updatePlayerCredit() {
 function onPageLoad () {
   newDeck();
   newRound();
+  resetButton();
 }
 
 /* ============================================================== */
 // On window load
 window.onLoad = onPageLoad();
-
-
-// for (i=0; i<11; i++) {
-//   console.log("card " + i + " rank " + deck.cards[i].rank + deck.cards[i].suit);
-// }
-// onDeal();
-// console.log (dealerHand.owner + " " +dealerHand.cards[0].rank + dealerHand.cards[0].suit);
-// console.log (dealerHand.owner + " " +dealerHand.cards[1].rank + dealerHand.cards[1].suit);
-// for (i=0; i < hands.length; i++) {
-//   console.log (i + " " + hands[i].cards[0].rank + hands[i].cards[0].suit);
-//   console.log (i + " " + hands[i].cards[1].rank + hands[i].cards[1].suit);
-// }
-
-
-
-/*- Game advice
-    - Teach player by keeping a record of how things should be done at each step
-      + Score
-      + Recognize the dealer up card
-      + Check against the recommended table
-      + Repeat at every step the user play
-*/
-
 
 
 

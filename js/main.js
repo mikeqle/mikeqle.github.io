@@ -1,3 +1,8 @@
+/* ========================================================= */
+// Keys in this script:
+//   [TBU]: to be updated - work to be continued
+//   [TBR]: to be removed - mostly console.log for debugging purposes
+
 
 /* ========================================================= */
 
@@ -6,6 +11,7 @@
 function Card(rank,suit) {
   this.rank       = rank;
   this.suit       = suit;
+
   this.createNode = cardCreateNode;
 }
 
@@ -19,11 +25,20 @@ function Stack () {
 }
 
 function Hand(owner, splitcount) {
-  this.cards     = new Array();
-  this.score     = handScore;
+  this.cards      = new Array();
+
+  this.score      = handScore;
+// we will need to extract div id to send the cards to display
+// we will need addCard, clear, and reset functions [TBU]
+  this.addCard    = handAddCard;
+  this.removeCard = handRemoveCard;
+  this.clear      = handClear;
+  this.reset      = handReset;
+
   this.blackjack = false;
   this.busted    = false;
   this.soft      = false;
+  this.surrender = false;
   this.owner     = owner;
   this.handname  = owner+splitcount;
 }
@@ -284,22 +299,71 @@ function handScore() {
         break;
     }
   }
+// check soft or hard hand
   if (aceIncluded === true && score <= 11) {
     this.soft = true;
     score = score + 10;
   }
-  if (score === 21 && this.cards.length === 2) {
+// check blackjack
+  if (score === 21 && this.cards.length === 2)
     this.blackjack = true;
-  }
-  if (score > 21) {
+// check if busted
+  if (score > 21)
     this.busted = true;
-  }
+
   return score;
 }
 
+function handAddCard() {
+// [TBU]
+}
+
+function handRemoveCard() {
+// [TBU]
+}
+
+function handReset() {
+// [TBU]
+}
+
+function handClear() {
+// [TBU]
+}
+
+/* ========================================================= */
+// Global variables & constants
+
+var numDecks   = 8;
+var numShuffle = 20;
+var credit = 1000;
+var maxSplits = 3;
+var burnCard, deck; 
+var currentSplit = 0;
+
+/* ========================================================= */
+// Declare player hands
+
+dealerHand  = new Hand("dealer", 0);
+player0Hand = new Hand("player", 0);
+compAHand   = new Hand("compA", 0);
+compBHand   = new Hand("compB", 0);
+compCHand   = new Hand("compC", 0);
+compDHand   = new Hand("compD", 0);
+var player1Hand, player2Hand, player3Hand;
+
+/* ========================================================= */
+
+// Declare hand arrays and dictionaries
+hands = [player0Hand, compAHand, compBHand, compCHand, compDHand];
+var current = 0; // This is to indicate the current hand in the hands array
+
+handnames = {"player0": player0Hand, "player1": player1Hand, "player2": player2Hand, "player3": player3Hand, "compA0": compAHand, "compB0": compBHand, "compC0": compCHand, "compD0": compDHand};
+credits = {"player": 1000, "compA": 1000, "compB": 1000, "compC": 1000, "compD": 1000};
+bets = {"player0": 10, "player1": 10, "player2": 10, "player3": 10, "compA0": 10, "compB0": 10, "compC0": 10, "compD0": 10};
 
 
 /* ========================================================= */
+// newDeck and newRound functions
 
 function newDeck() {
   deck = new Stack();
@@ -307,57 +371,87 @@ function newDeck() {
   deck.shuffle(numShuffle);
 }
 
-function onPageLoad () {
-  newDeck();
-
-}
-
-function clearhands() {
+function newRound() {
   for (i = 0; i<hands.length; i++) {
-    hands[i].length = 0;
+    hands[i].cards.length = 0;
   }
+  dealerHand.cards.length = 0;
+// figure out a way to reset bets amount to last round bet. current bet may be modified because of double
+  current = 0;
 }
 
-// Button functions
-// Game start with 
+function resetButton() {
+  $('#deal').prop('disabled', false);
+  $('#hit').prop('disabled', true);
+  $('#double').prop('disabled', true);
+  $('#split').prop('disabled', true);
+  $('#stand').prop('disabled', true);
+  $('#surrender').prop('disabled', true);
+}
 
+/* ========================================================= */
+// Button functions
 
 function onDeal() {
-  clearhands();
-// deal first card
-  deck.deal(dealerHand);
+  newRound();
+
+  $('#deal').prop('disabled', true);
+// take all bets
   for (i=0; i<hands.length; i++) {
-    deck.deal(hands[i]);
-  }
-// deal second card
-  deck.deal(dealerHand);
-  for (i=0; i<hands.length; i++) {
-    deck.deal(hands[i]);
+    credits[hands[i].owner] -= bets[hands[i].handname];
   }
 
-  gameplay();
+  updatePlayerCredit();
+
+// deal first card
+  for (i=0; i<hands.length; i++) {
+    deck.deal(hands[i]);
+  }
+  deck.deal(dealerHand);
+// deal second card
+  for (i=0; i<hands.length; i++) {
+    deck.deal(hands[i]);
+  }
+  deck.deal(dealerHand);
+
+  console.log ("Player hand: "+ player0Hand.score() + ". Dealer hand: " + dealerHand.score() + ". Current credit: " + credits["player"] ); // [TBR]
+
+// check if dealer has blackjack / ace on second card
+  checkBlackjack();
 }
 
 function onHit () {
-  deck.deal(hand);
+  deck.deal(hands[current]);
   hands[current].score();
-
-  }
-  
-  // update the score and credit [TBU]
+  console.log (hands[current].handname + " score:" + hands[current].score()); // [TBR]
+// if busted
+  if (hands[current].busted || hands[current].score() === 21)
+    endHand();
+}
 
 function onDouble() {
   deck.deal(hands[current]);
-  hands[current].score();
-// update score, end the game, check if busted
+  credits[hands[current].owner] -= bets[hands[current].handname];
+  bets[hands[current].handname] += bets[hands[current].handname];
+  updatePlayerCredit();
+  endHand();
 }
 
-function onSplit(hand) {
-// check it reach split limit, move the second card to a new hand. 
+function onSplit() {
+// move the second card to a new hand. [TBU]
+  currentSplit += 1;
+  handname[hands[current].owner+currentSplit] = new Hand (hands[current].owner, currentSplit);
+
 }
 
-function onStand(hand) {
-// end game
+function onStand() {
+  endHand();
+}
+
+function onSurrender() {
+  credits[hands[current].owner] += bets[hands[current].handname] / 2;
+  updatePlayerCredit();
+  endHand();
 }
 
 function onInsurance() {
@@ -369,32 +463,22 @@ function onInsurance() {
 
     if (dealerHand.blackjack) {
       alert ("Dealer has blackjack. You win!");
-      credits[hands[current].owner] += insuranceCost;
+      credits[hands[current].owner] += insuranceCost * 2;
     }
     else
       alert("Dealer does not have blackjack. you lose " + insuranceCost);
   }
-  // update credit [TBU]
+  if (hands[current].owner === "player")
+    updatePlayerCredit();
 }
 
-function onSurrender(hand) {
-  // only available when hand has 2 cards
-  // end game if chosen surrender
-  // deactivate if hand length is 3 or more
-}
 
-function ifBusted() {
-  if (hands[current].busted) {
-// Display lose status [TBU]
 
-// If busted, credit is reduce and the hand is done
-  credits[hands[current].owner] -= bets[hands[current].handname];
-  endHand();
-  }
-}
+/* ============================================================== */
+// Background functions
 
-// Gameplay right after the card is dealt
-function gameplay() {
+// Gameplay right after the hands are dealt
+function checkBlackjack() {
   dealerHand.score();
   for (i=0; i<hands.length; i++) {
     hands[i].score();
@@ -408,128 +492,130 @@ function gameplay() {
   if (dealerHand.blackjack) {
     endRound();
   }
-
-// if not, proceed to individual gameplay: playerTurn & AITurn
+// If not, proceed to first player (player turn)
   else {
     playerTurn();
   }
 }
 
 function playerTurn() {
+  $('#deal').prop('disabled', true);
+  $('#hit').prop('disabled', false);
+  $('#stand').prop('disabled', false);
 
+  if (hands[current].blackjack) {
+    endHand();
+  }
 
-// if player decided to hit, then extend playerTurn to next current count, else move to AITurn
+  if (hands[current].cards.length === 2) { //[TBU] Cannot read property 'cards' of undefined
+    $('#double').prop('disabled', false);
+    $('#surrender').prop('disabled', false);
+  }
 
+  if (hands[current].cards[0] === hands[current].cards[1] && hands[current].cards.length === 2 && currentSplit < maxSplits ) {
+    $('#split').prop('disabled', false);
+  }
 }
 
 function AITurn() {
-
+  $('#buttonDiv button').prop('disabled', true);
+  // [TBU]
+  endHand();
 }
 
 function dealerTurn() {
-
+// dealer will have to hit on soft 17 [TBU]
+  dealerHand.score();
+  while ( (dealerHand.score() < 18) || (dealerHand.score() === 17 && !dealerHand.soft ) ) {
+    deck.deal(dealerHand);
+    dealerHand.score();
+  }
+  endRound();
 }
 
 function endHand() {
   hands[current].score();
   current += 1;
 
-  if (current == hands.length) {
-    endRound();
+  if (current >= hands.length) {
+    dealerTurn();
+  }
+  else {
+    if (hands[current].cards.length === 1) {
+      deck.deal(hands[current]);
+    }
+    if (hands[current].owner === "player") {
+      playerTurn();
+    }
+    else AITurn();
   }
 }
 
 function endRound() {
-// Evaluate scenarios and pay off
   dealerHand.score();
   for (i=0; i<hands.length; i++) {
-  // if dealer is blackjack
-    if (dealer.blackjack) {
-      if (hands[i].blackjack) {
-        console.log(hands[i].handname + "push");
-      } 
-      else {
-        credits[hands[i].owner] -= bets[hands[i].handname];
-        console.log(hands[i].handname + "lost");
-      }
+    // if player surrender take money and move on
+    if (hands[i].surrender){
+      console.log(hands[i].handname + " surrendered. " + hands[i].score() + ". Credit is: " + credits[hands[i].owner] );
     }
-  // if dealer is not blackjack
     else {
-      if (hands[i].blackjack) {
-        credits[hands[i].owner] += bets[hands[i].handname]*2;
-        console.log(hands[i].handname + "Wins Blackjack");
-      }
-      else if (dealerHand.score() > hands[i].score()){
-        credits[hands[i].owner] -= bets[hands[i].handname];
-        console.log(hands[i].handname + "lost");
-      }
-      else if (dealerHand.score() < hands[i].score()) {
-        credits[hands[i].owner] += bets[hands[i].handname];
-        console.log(hands[i].handname + "won");
+      if (!dealerHand.blackjack && hands[i].blackjack) {
+        credits[hands[i].owner] += bets[hands[i].handname]*2.5 ;
+        console.log(hands[i].handname + " has . " + hands[i].score() + ". Credit is: " + credits[hands[i].owner] );
       }
       else {
-        console.log(hands[i].handname + "push");
+        if ( (dealerHand.blackjack && !hands[i].blackjack) || hands[i].busted || (dealerHand.score() > hands[i].score() && !dealerHand.busted) ) {
+          console.log(hands[i].handname + " loses. " + hands[i].score() + ". Credit is: " + credits[hands[i].owner] );
+        }
+        else {
+          if ( (dealerHand.blackjack && hands[i].blackjack) || (dealerHand.score() === hands[i].score()) ) {
+            credits[hands[i].owner] += bets[hands[i].handname];
+            console.log(hands[i].handname + " draw. " + hands[i].score() + ". Credit is: " + credits[hands[i].owner] );
+          }
+          else {
+            if (dealerHand.busted || hands[i].score() > dealerHand.score()) {
+              credits[hands[i].owner] += bets[hands[i].handname]*2;
+              console.log(hands[i].handname + " wins. " + hands[i].score() + ". Credit is: " + credits[hands[i].owner] );
+            }
+          }
+        }
       }
     }
   }
+  console.log("Dealer score: " + dealerHand.score()); // [TBR]
+  console.log("***********************************"); // [TBR]
+  resetButton();
+}
+
+function updatePlayerCredit() {
+//[TBU]
 }
 
 /* ========================================================= */
+// onLoad function: will happen at beginning of game
 
-// Global variables & constants
-
-var numDecks   = 8;
-var numShuffle = 20;
-var credit = 1000;
-
-/* ========================================================= */
-// Declare player hands
-
-dealerHand  = new Hand("dealer", 0);
-player0Hand = new Hand("player", 0);
-compAHand   = new Hand("compA", 0);
-compBHand   = new Hand("compB", 0);
-compCHand   = new Hand("compC", 0);
-compDHand   = new Hand("compD", 0);
-
-/* ========================================================= */
-// Declare bet values
-var player0Bet = 10 ;
-var player1Bet, player2Bet, player3Bet; // for split bets
-var compABet = 5;
-var compBBet = 5;
-var compCBet = 5;
-var compDBet = 5;
-
-// Declare credit balance for all players
-var playerCredit = 1000;
-var compACredit = 1000;
-var compBCredit = 1000;
-var compCCredit = 1000;
-var compDCredit = 1000;
-
-
-// Declare hand arrays and dictionaries
-hands = [player0Hand, compAHand, compBHand, compCHand, compDHand];
-var current = 0; // This is to indicate the current hand in the hands array
-
-credits = {"player":playerCredit, "compA":compACredit, "compB":compBCredit, "compC":compCCredit, "compD":compDCredit};
-bets = {"player0": player0Bet, "player1": player1Bet, "player2": player2Bet, "player3": player3Bet, "compA0": compABet, "compB0": compBBet, "compC0": compCBet, "compD0": compDBet};
-
-
-// Testing
-
-newDeck();
-for (i=0; i<11; i++) {
-  console.log("card " + i + " rank " + deck.cards[i].rank + deck.cards[i].suit);
+function onPageLoad () {
+  newDeck();
+  newRound();
 }
-onDeal();
-console.log (dealerHand.owner + " " +dealerHand.cards[0].rank + dealerHand.cards[0].suit);
-console.log (dealerHand.owner + " " +dealerHand.cards[1].rank + dealerHand.cards[1].suit);
-for (i=0; i < hands.length; i++) {
-  console.log (i + " " + hands[i].cards[0].rank + hands[i].cards[0].suit);
-  console.log (i + " " + hands[i].cards[1].rank + hands[i].cards[1].suit);
-}
+
+/* ============================================================== */
+// On window load
+window.onLoad = onPageLoad();
+
+
+// for (i=0; i<11; i++) {
+//   console.log("card " + i + " rank " + deck.cards[i].rank + deck.cards[i].suit);
+// }
+// onDeal();
+// console.log (dealerHand.owner + " " +dealerHand.cards[0].rank + dealerHand.cards[0].suit);
+// console.log (dealerHand.owner + " " +dealerHand.cards[1].rank + dealerHand.cards[1].suit);
+// for (i=0; i < hands.length; i++) {
+//   console.log (i + " " + hands[i].cards[0].rank + hands[i].cards[0].suit);
+//   console.log (i + " " + hands[i].cards[1].rank + hands[i].cards[1].suit);
+// }
+
+
 
 /*- Game advice
     - Teach player by keeping a record of how things should be done at each step

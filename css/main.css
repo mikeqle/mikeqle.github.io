@@ -136,6 +136,10 @@ body {
   margin-bottom: 1%;
 }
 
+.hide {
+  display: none;
+}
+
 .playField {
   width: 19%;
   border: 1px solid red;
@@ -145,7 +149,10 @@ body {
   background-color: rgba(54, 75, 49, 0.75);
 }
 
-.playField:last-child {
+.playField:nth-child(5),
+.playField:nth-child(10),
+.playField:nth-child(15),
+.playField:nth-child(20) {
   margin-right:0;
 }
 
@@ -163,6 +170,7 @@ body {
   margin-right: 1%;
 }
 
+/*========================================================*/
 /*------ Playing cards ------*/
 .card {
   background-image: url("../img/cardback.gif");

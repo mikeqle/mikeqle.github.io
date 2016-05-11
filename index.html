@@ -12,20 +12,42 @@
       
     </div>
     <div id="playerContainer">
-      <div class="playField" id="player"></div>
-      <div class="playField" id="compA"></div>
-      <div class="playField" id="compB"></div>
-      <div class="playField" id="compC"></div>
-      <div class="playField" id="compD"></div>
+<!-- 1st row of hands-->
+      <div class="playField" id="player0"></div>
+      <div class="playField" id="compA0"></div>
+      <div class="playField" id="compB0"></div>
+      <div class="playField" id="compC0"></div>
+      <div class="playField" id="compD0"></div>
+
+<!-- 2nd row of hands: in case of splitting hands, however the computers are placeholders and will not split hands in this version-->
+      <div class="playField hide" id="player1"></div>
+      <div class="playField hide" id="compA1"></div>
+      <div class="playField hide" id="compB1"></div>
+      <div class="playField hide" id="compC1"></div>
+      <div class="playField hide" id="compD1"></div>
+
+<!-- 3rd row of hands-->
+      <div class="playField hide" id="player2"></div>
+      <div class="playField hide" id="compA2"></div>
+      <div class="playField hide" id="compB2"></div>
+      <div class="playField hide" id="compC2"></div>
+      <div class="playField hide" id="compD2"></div>
+
+<!-- 4th row of hands-->
+      <div class="playField hide" id="player3"></div>
+      <div class="playField hide" id="compA3"></div>
+      <div class="playField hide" id="compB3"></div>
+      <div class="playField hide" id="compC3"></div>
+      <div class="playField hide" id="compD3"></div>
     </div>
 
     <div id="buttonDiv" class="clearfix">
-      <button id="deal" >Deal</button>
-      <button id="hit">Hit</button>
-      <button id="double">Double</button>
+      <button id="deal" onclick="onDeal(); return false;">Deal</button>
+      <button id="hit" onclick="onHit(); return false;">Hit</button>
+      <button id="double" onclick="onDouble(); return false;">Double</button>
       <button id="split">Split</button>
-      <button id="stand">Stand</button>
-      <button id="surrender">Surrender</button>
+      <button id="stand" onclick="onStand(); return false;">Stand</button>
+      <button id="surrender" onclick="onSurrender(); return false;">Surrender</button>
     </div>
 
 

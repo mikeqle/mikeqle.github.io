@@ -613,18 +613,112 @@ function playerTurn() {
   }
 }
 
+// AI acts according to basic strategy
 function AITurn() {
   $('#buttonDiv button').prop('disabled', true);
-  hands[current].score();
+  scoreAI = hands[current].score();
+  soft = hands[current].soft;
+  dealer1 = dealerHand.cards[1];
   // soft hand
-  if (hands[current].soft) {
+//  while ((scoreAI) < 19) { // meaning if score is 19 or above, stand
+    if (hands[current].soft) {
 
-  }
-  // hard hand
-  else {
+      if (dealer1.rank === "2") {
+        switch (true) {
+          case (scoreAI <= 17):
+            onHit();
+            break;
+          case (scoreAI >17):
+            onStand();
+            break;
+        }
+      }
 
-  }
-// [TBU]
+      if (dealer1.rank === "3") {
+        switch (true) {
+          case (scoreAI <= 16):
+            onHit();
+            break;
+          case (scoreAI === 17 || scoreAI === 18):
+            onDouble();
+            break;
+          case (scoreAI > 18):
+            onStand();
+            break;
+        }
+      }
+
+      if (dealer1.rank === "4") {
+        switch (true) {
+          case (scoreAI <= 14):
+            onHit();
+            break;
+          case (scoreAI > 14 && scoreAI < 19):
+            onDouble();
+            break;
+          case (scoreAI > 19):
+            onStand();
+            break;
+        }
+      }
+
+      if (dealer1.rank === "5" || dealer1.rank ==="6") {
+        switch (true) {
+          case (scoreAI <= 18):
+            onDouble();
+            break;
+          case (scoreAI > 18):
+            onStand();
+            break;
+        }
+      }
+
+      if (dealer1.rank === "7" || dealer1.rank ==="8") {
+        switch (true) {
+          case (scoreAI <= 17):
+            onHit();
+            break;
+          case (scoreAI > 17):
+            onStand();
+            break;
+        }
+      }
+
+      if (dealer1.rank === "9" || dealer1.rank ==="10" || dealer1.rank ==="J" || dealer1.rank ==="Q" || dealer1.rank ==="K" || dealer1.rank ==="A") {
+        switch (true) {
+          case (scoreAI <= 18):
+            onHit();
+            break;
+          case (scoreAI > 18):
+            onStand();
+            break;
+        }
+      }
+
+    }
+    // hard hand
+    else {
+
+      if (dealer1.rank === "2") {
+        switch (true) {
+          case (scoreAI <= 9):
+            onHit();
+            break;
+          case (scoreAI > 9 && scoreAI < 12):
+            onDouble();
+            break;
+          case (scoreAI === 12):
+            
+
+        }
+      }
+
+
+    }
+    scoreAI = hands[current].score();
+    soft = hands[current].soft;
+//  } goes with while
+
   endHand();
 }
 

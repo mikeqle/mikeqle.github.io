@@ -446,6 +446,7 @@ function newRound() {
 
   currentSplit = 0;
   $('#suggestList').empty();
+  $('#playerBet').html("Bet: " + bets["player0"]);
 }
 
 function resetButton() {
@@ -973,42 +974,42 @@ function suggestedPlay() {
     if (hands[current].cards.length === 2 && hands[current].cards[0].rank === hands[current].cards[1].rank) {
       switch (true) {
         case (card0 === "A" || card0 === "8"):
-          suggestText = "You have a pair of " + card + ". You should split.";
+          suggestText = "You have a pair of " + card0 + ". You should split.";
           break;
         case (card0 === "10" || card0 === "J" || card0 === "Q" || card0 === "K"):
-          suggestText = "You have a pair of " + card + ". You should stand.";
+          suggestText = "You have a pair of " + card0 + ". You should stand.";
           break;
 
         case (card0 === "5"):
           if (dealer0 === "10" || dealer0 === "J" || dealer0 === "Q" || dealer0 === "K" || dealer0 === "A")
-            suggestText = "You have a pair of " + card + ". And dealer has a " + dealer0 +". You should hit.";
-          else suggestText = "You have a pair of " + card + ". And dealer has a " + dealer0 +". You should double.";
+            suggestText = "You have a pair of " + card0 + ". And dealer has a " + dealer0 +". You should hit.";
+          else suggestText = "You have a pair of " + card0 + ". And dealer has a " + dealer0 +". You should double.";
           break;
 
         case (card0 === "2" || card0 === "3"):
           if (dealer0 === "8" || dealer0 === "9" || dealer0 === "10" || dealer0 === "J" || dealer0 === "Q" || dealer0 === "K" || dealer0 === "A")
-            suggestText = "You have a pair of " + card + ". And dealer has a " + dealer0 +". You should hit.";
-          else suggestText = "You have a pair of " + card + ". And dealer has a " + dealer0 +". You should split.";
+            suggestText = "You have a pair of " + card0 + ". And dealer has a " + dealer0 +". You should hit.";
+          else suggestText = "You have a pair of " + card0 + ". And dealer has a " + dealer0 +". You should split.";
           break;
 
         case (card0 === "4"):
           if (dealer0 === "5" || dealer0 === "6")
-            suggestText = "You have a pair of " + card + ". And dealer has a " + dealer0 +". You should split.";
-          else suggestText = "You have a pair of " + card + ". And dealer has a " + dealer0 +". You should hit.";
+            suggestText = "You have a pair of " + card0 + ". And dealer has a " + dealer0 +". You should split.";
+          else suggestText = "You have a pair of " + card0 + ". And dealer has a " + dealer0 +". You should hit.";
           break;
 
         case (card0 === "6" || card0 === "7"):
           if (dealer0 === "2" || dealer0 === "3" || dealer0 === "4" || dealer0 === "5" || dealer0 === "6")
-            suggestText = "You have a pair of " + card + ". And dealer has a " + dealer0 +". You should split.";
-          else "You have a pair of " + card + ". And dealer has a " + dealer0 +". You should hit.";
+            suggestText = "You have a pair of " + card0 + ". And dealer has a " + dealer0 +". You should split.";
+          else "You have a pair of " + card0 + ". And dealer has a " + dealer0 +". You should hit.";
           if (card0 === "7" && dealer0 === "7")
-            suggestText = "You have a pair of " + card + ". And dealer has a " + dealer0 +". You should split.";
+            suggestText = "You have a pair of " + card0 + ". And dealer has a " + dealer0 +". You should split.";
           break;
 
         case (card0 === "9"):
           if (dealer0 === "7" || dealer0 === "10" || dealer0 === "J" || dealer0 === "Q" || dealer0 === "K" || dealer0 === "A")
-            suggestText = "You have a pair of " + card + ". And dealer has a " + dealer0 +". You should stand.";
-          else suggestText = "You have a pair of " + card + ". And dealer has a " + dealer0 +". You should split.";
+            suggestText = "You have a pair of " + card0 + ". And dealer has a " + dealer0 +". You should stand.";
+          else suggestText = "You have a pair of " + card0 + ". And dealer has a " + dealer0 +". You should split.";
           break;
       }
     }

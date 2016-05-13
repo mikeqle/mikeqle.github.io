@@ -34,6 +34,7 @@ function Hand(owner, splitcount) {
   this.cards      = new Array();
 
   this.cardsNode  = document.getElementById(owner+splitcount);
+  this.scoreNode  = document.getElementById(owner+splitcount+"Score");
   // this.scoreNode  = document.getElementById(owner+splitcount+"Score"); // [TBU] - Add a div middle of the playing field to display result
 
   this.score      = handScore;
@@ -387,7 +388,8 @@ function handClear() {
 
 var numDecks   = 8;
 var numShuffle = 20;
-var credit = 1000;
+var betIncrement = 5;
+var minBet = 10;
 var maxSplits = 3;
 var burnCard, deck; 
 var currentSplit = 0;
@@ -413,7 +415,6 @@ handnames = {"player0": player0Hand, "player1": player1Hand, "player2": player2H
 credits = {"player": 1000, "compA": 1000, "compB": 1000, "compC": 1000, "compD": 1000};
 bets = {"player0": 10, "player1": 10, "player2": 10, "player3": 10, "compA0": 10, "compB0": 10, "compC0": 10, "compD0": 10};
 
-
 /* ========================================================= */
 // newDeck and newRound functions
 
@@ -437,7 +438,14 @@ function newRound() {
   current = 0;
   hands.length = 0;
   hands = [player0Hand, compAHand, compBHand, compCHand, compDHand];
-  currentSplits = 0;
+
+  for (i = 1; i<= currentSplit; i++ ){
+    $('#'+hands[current].owner+currentSplit).addClass('hide');
+    $('#'+hands[current].owner+currentSplit+"Score").addClass('hide');
+  }
+
+  currentSplit = 0;
+  $('#suggestList').empty();
 }
 
 function resetButton() {
@@ -447,6 +455,8 @@ function resetButton() {
   $('#split').prop('disabled', true);
   $('#stand').prop('disabled', true);
   $('#surrender').prop('disabled', true);
+  $('#increase').prop('disabled', false);
+  $('#decrease').prop('disabled', false);
 }
 
 /* ========================================================= */
@@ -456,31 +466,29 @@ function onDeal() {
   newRound();
 
   $('#deal').prop('disabled', true);
+  $('#increase').prop('disabled', true);
+  $('#decrease').prop('disabled', true);
 // take all bets
-  for (i=1; i<hands.length; i++) {
+  for (i=0; i<hands.length; i++) {
     credits[hands[i].owner] -= bets[hands[i].handname];
   }
-
+  updateScore();
   updatePlayerCredit();
 
 // deal first card
-  for (i=1; i<hands.length; i++) {
+  for (i=0; i<hands.length; i++) {
     hands[i].addCard(deck.deal(hands[i]),false);
   }
   dealerHand.addCard(deck.deal(dealerHand),true);
 // deal second card
-  for (i=1; i<hands.length; i++) {
+  for (i=0; i<hands.length; i++) {
     hands[i].addCard(deck.deal(hands[i]),false);
   }
   dealerHand.addCard(deck.deal(dealerHand),false);
 
-  // Testing [TBR]
-  player0Hand.addCard(player0Hand.cards[0] = new Card ("A", "H"),false);
-  player0Hand.addCard(player0Hand.cards[1] = new Card ("A", "D"),false);
-
-  console.log ("Player hand: "+ player0Hand.score() + ". Dealer hand: " + dealerHand.score() + ". Current credit: " + credits["player"] ); // [TBR]
-
 // check if dealer has blackjack / ace on second card
+  $('#suggestion').addClass('invisible');
+  suggestedPlay();
   checkBlackjack();
 }
 
@@ -489,6 +497,8 @@ function onHit () {
   hands[current].score();
   console.log (hands[current].handname + " score:" + hands[current].score()); // [TBR]
 // if busted
+  updateScore();
+  suggestedPlay();
   if (hands[current].busted || hands[current].score() === 21)
     endHand();
 }
@@ -498,6 +508,8 @@ function onDouble() {
   credits[hands[current].owner] -= bets[hands[current].handname];
   bets[hands[current].handname] += bets[hands[current].handname];
   updatePlayerCredit();
+  updateScore();
+  suggestedPlay();
   endHand();
 }
 
@@ -526,7 +538,7 @@ function onSplit() {
 
   case 3:
     player3Hand = new Hand("player", 3);
-    bets["player2"] = bets[hands[current].handname];
+    bets["player3"] = bets[hands[current].handname];
     player3Hand.cards[0] = hands[current].cards[1];
     hands.splice(current+1, 0, player3Hand);
     hands[current+1].addCard(hands[current].cards[1],false); 
@@ -536,16 +548,21 @@ function onSplit() {
   
   hands[current].addCard(deck.deal(hands[current]),false);
   playerTurn();
+  updateScore();
+  suggestedPlay();
   $('#'+hands[current].owner+currentSplit).removeClass('hide');
+  $('#'+hands[current].owner+currentSplit+"Score").removeClass('hide');
 }
 
 function onStand() {
+  updateScore();
   endHand();
 }
 
 function onSurrender() {
   credits[hands[current].owner] += bets[hands[current].handname] / 2;
   updatePlayerCredit();
+  suggestedPlay();
   endHand();
 }
 
@@ -565,8 +582,18 @@ function onInsurance() {
   }
   if (hands[current].owner === "player")
     updatePlayerCredit();
+    suggestedPlay();
 }
 
+function onIncrease() {
+  bets["player0"] += betIncrement;
+  $('#playerBet').html("Bet: " + bets["player0"]);
+}
+
+function onDecrease() {
+  bets["player0"] = Math.max(bets["player0"] - betIncrement, minBet);
+  $('#playerBet').html("Bet: " + bets["player0"]);
+}
 
 
 /* ============================================================== */
@@ -620,7 +647,7 @@ function AITurn() {
   soft = hands[current].soft;
   dealer1 = dealerHand.cards[1];
   // soft hand
-//  while ((scoreAI) < 19) { // meaning if score is 19 or above, stand
+  while ((scoreAI) < 19) { // meaning if score is 19 or above, stand
     if (hands[current].soft) {
 
       if (dealer1.rank === "2") {
@@ -701,23 +728,120 @@ function AITurn() {
 
       if (dealer1.rank === "2") {
         switch (true) {
-          case (scoreAI <= 9):
+          case (scoreAI <= 9 || scoreAI === 12):
             onHit();
             break;
           case (scoreAI > 9 && scoreAI < 12):
             onDouble();
             break;
-          case (scoreAI === 12):
-            
-
+          case (scoreAI > 12):
+            onStand();
+            break;
         }
       }
 
+      if (dealer1.rank === "3") {
+        switch (true) {
+          case (scoreAI <= 8 || scoreAI === 12):
+            onHit();
+            break;
+          case (scoreAI > 8 && scoreAI < 12):
+            onDouble();
+            break;
+          case (scoreAI > 12):
+            onStand();
+            break;
+        }
+      }
 
+      if (dealer1.rank === "4" || dealer1.rank === "5" || dealer1.rank === "6") {
+        switch (true) {
+          case (scoreAI <= 8):
+            onHit();
+            break;
+          case (scoreAI > 8 && scoreAI < 12):
+            onDouble();
+            break;
+          case (scoreAI >= 12):
+            onStand();
+            break;
+        }
+      }
+
+      if (dealer1.rank === "7" || dealer1.rank === "8") {
+        switch (true) {
+          case (scoreAI <= 9):
+            onHit();
+            break;
+          case (scoreAI === 10 || scoreAI === 11):
+            onDouble();
+            break;
+          case (scoreAI >= 12 && scoreAI < 17):
+            onHit();
+            break;
+          case (scoreAI >= 17):
+            onStand();
+            break;
+        }
+      }
+
+      if (dealer1.rank === "9") {
+        switch (true) {
+          case (scoreAI <= 9):
+            onHit();
+            break;
+          case (scoreAI === 10 || scoreAI === 11):
+            onDouble();
+            break;
+          case (scoreAI >= 12 && scoreAI < 16):
+            onHit();
+            break;
+          case (scoreAI === 16):
+            onSurrender();
+            break;
+          case (scoreAI >= 17):
+            onStand();
+            break;
+        }
+      }
+
+      if (dealer1.rank === "10" || dealer1.rank === "J" || dealer1.rank === "Q" || dealer1.rank === "K") {
+        switch (true) {
+          case (scoreAI <= 10):
+            onHit();
+            break;
+          case (scoreAI === 11):
+            onDouble();
+            break;
+          case (scoreAI >= 12 && scoreAI < 15):
+            onHit();
+            break;
+          case (scoreAI === 15 || scoreAI === 16):
+            onSurrender();
+            break;
+          case (scoreAI >= 17):
+            onStand();
+            break;
+        }
+      }
+
+      if (dealer1.rank === "A") {
+        switch (true) {
+          case (scoreAI <= 15):
+            onHit();
+            break;
+          case (scoreAI === 16):
+            onSurrender();
+            break;
+          case (scoreAI >= 17):
+            onStand();
+            break;
+        }
+      }
     }
     scoreAI = hands[current].score();
     soft = hands[current].soft;
-//  } goes with while
+  }
 
   endHand();
 }
@@ -731,6 +855,7 @@ function dealerTurn() {
     dealerHand.addCard(deck.deal(dealerHand),false);
     dealerHand.score();
   }
+  $('#dealerScore').html("Dealer: " + dealerHand.score());
   endRound();
 }
 
@@ -759,29 +884,24 @@ function endHand() {
 function endRound() {
   dealerHand.score();
   dealerHand.cardsNode.firstChild.firstChild.style.visibility = "";
+  $('#suggestion').removeClass('invisible');
   for (i=0; i<hands.length; i++) {
-    // if player surrender take money and move on
     if (hands[i].surrender){
-      console.log(hands[i].handname + " surrendered. " + hands[i].score() + ". Credit is: " + credits[hands[i].owner] );
     }
     else {
       if (!dealerHand.blackjack && hands[i].blackjack) {
         credits[hands[i].owner] += bets[hands[i].handname]*2.5 ;
-        console.log(hands[i].handname + " has . " + hands[i].score() + ". Credit is: " + credits[hands[i].owner] );
       }
       else {
         if ( (dealerHand.blackjack && !hands[i].blackjack) || hands[i].busted || (dealerHand.score() > hands[i].score() && !dealerHand.busted) ) {
-          console.log(hands[i].handname + " loses. " + hands[i].score() + ". Credit is: " + credits[hands[i].owner] );
         }
         else {
           if ( (dealerHand.blackjack && hands[i].blackjack) || (dealerHand.score() === hands[i].score()) ) {
             credits[hands[i].owner] += bets[hands[i].handname];
-            console.log(hands[i].handname + " draw. " + hands[i].score() + ". Credit is: " + credits[hands[i].owner] );
           }
           else {
             if (dealerHand.busted || hands[i].score() > dealerHand.score()) {
               credits[hands[i].owner] += bets[hands[i].handname]*2;
-              console.log(hands[i].handname + " wins. " + hands[i].score() + ". Credit is: " + credits[hands[i].owner] );
             }
           }
         }
@@ -794,13 +914,205 @@ function endRound() {
 }
 
 function updatePlayerCredit() {
-//[TBU]
+$('#playerCredit').html('Credits: ' + credits["player"]);
+}
+
+function updateScore() {
+  for (i=0; i<hands.length; i++) {
+    hands[i].score();
+  }
+  if (currentSplit === 0) {
+    $('#player0Score').html("Player: " + hands[0].score());
+    $('#compA0Score').html("Computer A: " + hands[1].score());
+    $('#compB0Score').html("Computer B: " + hands[2].score());
+    $('#compC0Score').html("Computer C: " + hands[3].score());
+    $('#compD0Score').html("Computer D: " + hands[4].score());
+  }
+
+  if (currentSplit === 1) {
+    $('#player0Score').html("Player: " + hands[0].score());
+    $('#player1Score').html("Player: " + hands[1].score());
+
+    $('#compA0Score').html("Computer A: " + hands[2].score());
+    $('#compB0Score').html("Computer B: " + hands[3].score());
+    $('#compC0Score').html("Computer C: " + hands[4].score());
+    $('#compD0Score').html("Computer D: " + hands[5].score());
+  }
+  
+  if (currentSplit === 2) {
+    $('#player0Score').html("Player: " + hands[0].score());
+    $('#player1Score').html("Hand 2: " + hands[1].score());
+    $('#player2Score').html("Hand 3: " + hands[2].score());
+
+    $('#compA0Score').html("Computer A: " + hands[3].score());
+    $('#compB0Score').html("Computer B: " + hands[4].score());
+    $('#compC0Score').html("Computer C: " + hands[5].score());
+    $('#compD0Score').html("Computer D: " + hands[6].score());
+  }
+  if (currentSplit === 3) {
+    $('#player0Score').html("Player: " + hands[0].score());
+    $('#player1Score').html("Hand 2: " + hands[1].score());
+    $('#player2Score').html("Hand 3: " + hands[2].score());
+    $('#player3Score').html("Hand 4: " + hands[3].score());
+
+    $('#compA0Score').html("Computer A: " + hands[4].score());
+    $('#compB0Score').html("Computer B: " + hands[5].score());
+    $('#compC0Score').html("Computer C: " + hands[6].score());
+    $('#compD0Score').html("Computer D: " + hands[7].score());
+  }
+}
+
+function suggestedPlay() {
+  handScore = hands[current].score();
+  dealer0 = dealerHand.cards[1].rank;
+  card0 = hands[current].cards[0].rank;
+  var suggestText = "";
+  if (handScore > 21)
+    suggestText = "You're busted";
+  else {
+    if (hands[current].cards.length === 2 && hands[current].cards[0].rank === hands[current].cards[1].rank) {
+      switch (true) {
+        case (card0 === "A" || card0 === "8"):
+          suggestText = "You have a pair of " + card + ". You should split.";
+          break;
+        case (card0 === "10" || card0 === "J" || card0 === "Q" || card0 === "K"):
+          suggestText = "You have a pair of " + card + ". You should stand.";
+          break;
+
+        case (card0 === "5"):
+          if (dealer0 === "10" || dealer0 === "J" || dealer0 === "Q" || dealer0 === "K" || dealer0 === "A")
+            suggestText = "You have a pair of " + card + ". And dealer has a " + dealer0 +". You should hit.";
+          else suggestText = "You have a pair of " + card + ". And dealer has a " + dealer0 +". You should double.";
+          break;
+
+        case (card0 === "2" || card0 === "3"):
+          if (dealer0 === "8" || dealer0 === "9" || dealer0 === "10" || dealer0 === "J" || dealer0 === "Q" || dealer0 === "K" || dealer0 === "A")
+            suggestText = "You have a pair of " + card + ". And dealer has a " + dealer0 +". You should hit.";
+          else suggestText = "You have a pair of " + card + ". And dealer has a " + dealer0 +". You should split.";
+          break;
+
+        case (card0 === "4"):
+          if (dealer0 === "5" || dealer0 === "6")
+            suggestText = "You have a pair of " + card + ". And dealer has a " + dealer0 +". You should split.";
+          else suggestText = "You have a pair of " + card + ". And dealer has a " + dealer0 +". You should hit.";
+          break;
+
+        case (card0 === "6" || card0 === "7"):
+          if (dealer0 === "2" || dealer0 === "3" || dealer0 === "4" || dealer0 === "5" || dealer0 === "6")
+            suggestText = "You have a pair of " + card + ". And dealer has a " + dealer0 +". You should split.";
+          else "You have a pair of " + card + ". And dealer has a " + dealer0 +". You should hit.";
+          if (card0 === "7" && dealer0 === "7")
+            suggestText = "You have a pair of " + card + ". And dealer has a " + dealer0 +". You should split.";
+          break;
+
+        case (card0 === "9"):
+          if (dealer0 === "7" || dealer0 === "10" || dealer0 === "J" || dealer0 === "Q" || dealer0 === "K" || dealer0 === "A")
+            suggestText = "You have a pair of " + card + ". And dealer has a " + dealer0 +". You should stand.";
+          else suggestText = "You have a pair of " + card + ". And dealer has a " + dealer0 +". You should split.";
+          break;
+      }
+    }
+    else {
+      if (hands[current].soft) {
+        switch (true) {
+          case (handScore <= 14):
+            if (dealer0 === "5" || dealer0 === "6")
+              suggestText = "You have a soft " + handScore + ". And dealer has a " + dealer0 +". You should double.";
+            else suggestText = "You have a soft " + handScore + ". And dealer has a " + dealer0 +". You should hit.";
+            break;
+
+          case (handScore === 15 || handScore === 16):
+            if (dealer0 === "4" || dealer0 === "5" || dealer0 === "6")
+              suggestText = "You have a soft " + handScore + ". And dealer has a " + dealer0 +". You should double.";
+            else suggestText = "You have a soft " + handScore + ". And dealer has a " + dealer0 +". You should hit.";
+            break;
+
+          case (handScore === 17):
+            if (dealer0 === "3" || dealer0 === "4" || dealer0 === "5" || dealer0 === "6")
+              suggestText = "You have a soft " + handScore + ". And dealer has a " + dealer0 +". You should double.";
+            else suggestText = "You have a soft " + handScore + ". And dealer has a " + dealer0 +". You should hit.";
+            break;
+
+          case (handScore === 18):
+            if (dealer0 === "2" || dealer0 === "7" || dealer0 === "8")
+              suggestText = "You have a soft " + handScore + ". And dealer has a " + dealer0 +". You should stand.";
+            else {
+              if (dealer0 === "3" || dealer0 === "4" || dealer0 === "5" || dealer0 === "6")
+                suggestText = "You have a soft " + handScore + ". And dealer has a " + dealer0 +". You should double.";
+              else suggestText = "You have a soft " + handScore + ". And dealer has a " + dealer0 +". You should hit.";
+            }
+            break;
+
+          case (handScore > 19):
+            suggestText = "You have a soft " + handScore + ". And dealer has a " + dealer0 +". You should stand.";
+            break;
+        }
+      }
+      else {
+        switch (true) {
+          case (handScore >= 8):
+            suggestText = "You have a hard " + handScore + ". And dealer has a " + dealer0 +". You should stand.";
+            break;
+
+          case (handScore === 9):
+            if (dealer0 === "3" || dealer0 === "4" || dealer0 === "5" || dealer0 === "6")
+              suggestText = "You have a hard " + handScore + ". And dealer has a " + dealer0 +". You should double.";
+            else suggestText = "You have a hard " + handScore + ". And dealer has a " + dealer0 +". You should hit.";
+            break;
+
+          case (handScore === 10):
+            if (dealer0 === "10" || dealer0 === "J" || dealer0 === "Q" || dealer0 === "K")
+              suggestText = "You have a hard " + handScore + ". And dealer has a " + dealer0 +". You should hit.";
+            else suggestText = "You have a hard " + handScore + ". And dealer has a " + dealer0 +". You should double.";
+            break;
+
+          case (handScore === 11):
+            if (dealer0 === "A")
+              suggestText = "You have a hard " + handScore + ". And dealer has a " + dealer0 +". You should hit.";
+            else suggestText = "You have a hard " + handScore + ". And dealer has a " + dealer0 +". You should double.";
+            break;
+
+          case (handScore === 12):
+            if (dealer0 === "4" || dealer0 === "5" || dealer0 === "6")
+              suggestText = "You have a hard " + handScore + ". And dealer has a " + dealer0 +". You should stand.";
+            else suggestText = "You have a hard " + handScore + ". And dealer has a " + dealer0 +". You should hit.";
+
+          case (handScore === 13 || handScore === 14 || handScore === 15):
+            if (dealer0 === "2" || dealer0 === "3" || dealer0 === "4" || dealer0 === "5" || dealer0 === "6")
+              suggestText = "You have a hard " + handScore + ". And dealer has a " + dealer0 +". You should stand.";
+            else suggestText = "You have a hard " + handScore + ". And dealer has a " + dealer0 +". You should hit.";
+
+            if (handScoer === 15 && (dealer0 === "10" || dealer0 === "J" || dealer0 === "Q" || dealer === "K") )
+              suggestText = "You have a hard " + handScore + ". And dealer has a " + dealer0 +". You should surrender.";
+            break;
+
+          case (handScore === 16):
+            if (dealer0 === "7" || dealer0 === "8")
+              suggestText = "You have a hard " + handScore + ". And dealer has a " + dealer0 +". You should hit.";
+            else {
+              if (dealer0 === "9" || dealer0 === "10" || dealer0 === "J" || dealer0 === "Q" || dealer0 === "K" || dealer0 === "A")
+                suggestText = "You have a hard " + handScore + ". And dealer has a " + dealer0 +". You should surrender.";
+              else suggestText = "You have a hard " + handScore + ". And dealer has a " + dealer0 +". You should stand.";
+            }
+            break;
+
+          case (handScoer > 16):
+            suggestText = "You have a hard " + handScore + ". And dealer has a " + dealer0 +". You should stand.";
+            break;
+        }
+      }
+    }
+  }
+  if ( hands[current].owner === "player")
+    $('#suggestList').append('<li>' + suggestText + '</li>');
 }
 
 /* ========================================================= */
 // onLoad function: will happen at beginning of game
 
 function onPageLoad () {
+  $('#playerCredit').html("Credits: " + credits["player"]);
+  $('#playerBet').html("Bet: " + bets["player0"]);
   newDeck();
   newRound();
   resetButton();

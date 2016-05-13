@@ -118,7 +118,6 @@ body {
 h5 {
   float:left;
   font-size: 1vw;
-  /*border: 1px solid red;*/
   background-color: rgba(255,255,255,0.2);
   width: 19%;
   margin: 0 1.25% 0 0;
@@ -126,6 +125,9 @@ h5 {
   text-align: center;
 }
 
+#row2 h5,
+#row3 h5,
+#row4 h5,
 #dealerContainer h5 {
   float: none;
 }
@@ -141,12 +143,27 @@ h5:nth-child(5) {
   /*border: 1px solid red;*/
   margin: 0 auto;
   padding: 1% 3%;
+  position: relative;
 }
 
 /*------ Playing field ------*/
 
 #dealer {
   margin-bottom: 1%;
+}
+
+#playerCredit, #playerBet {
+  position: absolute;
+  background-color: rgba(255,255,255,0.3);
+  width: 10vw;
+  font-size: 1.2vw;
+  left: 87vw;
+  top: 2vw;
+  z-index: 100;
+  padding-left: 5px;
+}
+#playerBet {
+  top: 4vw;
 }
 
 #playerContainer {
@@ -161,6 +178,10 @@ h5:nth-child(5) {
 
 .hide {
   display: none;
+}
+
+.h5div {
+  width: 100%;
 }
 
 .playField {
@@ -178,6 +199,34 @@ h5:nth-child(5) {
 .playField:nth-child(15),
 .playField:nth-child(20) {
   margin-right:0;
+}
+
+.rows {
+  position: relative;
+}
+
+#suggestion {
+  position: absolute;
+  top: 34.6vw;
+  left: 22vw;
+  width: 50vw;
+  background-color: rgba(255,255,255,0.3);
+  padding: 10px;
+}
+
+/*------ Results ------*/
+.result {
+  background-color: blue;
+  position: absolute;
+}
+
+#player0Result {
+  top: 5vw;
+  left: 3vw;
+}
+#compA0Result {
+  top: 5vw;
+  left: 20vw;
 }
 
 /*------ Playing buttons ------*/

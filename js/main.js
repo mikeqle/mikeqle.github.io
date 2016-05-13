@@ -909,6 +909,7 @@ function endRound() {
     }
   }
   $('#playerBet').html("Bet: " + bets["player0"]);
+  updatePlayerCredit();
   resetButton();
 }
 

@@ -1050,8 +1050,8 @@ function suggestedPlay() {
       }
       else {
         switch (true) {
-          case (handScore >= 8):
-            suggestText = "You have a hard " + handScore + ". And dealer has a " + dealer0 +". You should stand.";
+          case (handScore <= 8):
+            suggestText = "You have a hard " + handScore + ". And dealer has a " + dealer0 +". You should hit.";
             break;
 
           case (handScore === 9):
@@ -1082,7 +1082,7 @@ function suggestedPlay() {
               suggestText = "You have a hard " + handScore + ". And dealer has a " + dealer0 +". You should stand.";
             else suggestText = "You have a hard " + handScore + ". And dealer has a " + dealer0 +". You should hit.";
 
-            if (handScoer === 15 && (dealer0 === "10" || dealer0 === "J" || dealer0 === "Q" || dealer === "K") )
+            if (handScore === 15 && (dealer0 === "10" || dealer0 === "J" || dealer0 === "Q" || dealer0 === "K") )
               suggestText = "You have a hard " + handScore + ". And dealer has a " + dealer0 +". You should surrender.";
             break;
 
@@ -1096,7 +1096,7 @@ function suggestedPlay() {
             }
             break;
 
-          case (handScoer > 16):
+          case (handScore > 16):
             suggestText = "You have a hard " + handScore + ". And dealer has a " + dealer0 +". You should stand.";
             break;
         }

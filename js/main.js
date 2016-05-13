@@ -550,8 +550,8 @@ function onSplit() {
   hands[current].addCard(deck.deal(hands[current]),false);
   updateScore();
   suggestedPlay();
-  $('#'+hands[current].owner+currentSplit).removeClass('hide');
-  $('#'+hands[current].owner+currentSplit+"Score").removeClass('hide');
+  $('#player'+currentSplit).removeClass('hide');
+  $('#currentSplit'+'Score').removeClass('hide');
   playerTurn();
 }
 

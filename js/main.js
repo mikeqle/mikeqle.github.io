@@ -548,11 +548,11 @@ function onSplit() {
   }
   
   hands[current].addCard(deck.deal(hands[current]),false);
-  playerTurn();
   updateScore();
   suggestedPlay();
   $('#'+hands[current].owner+currentSplit).removeClass('hide');
   $('#'+hands[current].owner+currentSplit+"Score").removeClass('hide');
+  playerTurn();
 }
 
 function onStand() {
@@ -908,8 +908,7 @@ function endRound() {
       }
     }
   }
-  console.log("Dealer score: " + dealerHand.score()); // [TBR]
-  console.log("***********************************"); // [TBR]
+  $('#playerBet').html("Bet: " + bets["player0"]);
   resetButton();
 }
 

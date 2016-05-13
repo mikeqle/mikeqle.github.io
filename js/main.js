@@ -563,7 +563,6 @@ function onStand() {
 function onSurrender() {
   credits[hands[current].owner] += bets[hands[current].handname] / 2;
   updatePlayerCredit();
-  suggestedPlay();
   endHand();
 }
 
